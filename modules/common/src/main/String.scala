@@ -42,10 +42,17 @@ object String:
 
     inline def raw(inline html: Html) = scalatags.Text.all.raw(html.value)
 
-    def richText(rawText: String, nl2br: Boolean = true, expandImg: Boolean = true)(using NetDomain): Frag =
-      raw:
-        val withLinks = RawHtml.addLinks(rawText, expandImg)
-        if nl2br then RawHtml.nl2br(withLinks.value) else withLinks
+    def richText(rawText: String, nl2br: Boolean = true, expandImg: Boolean = true)(using NetDomain): Frag = 
+    raw:
+    val withLinks = convertPlainUrlsToLinks(RawHtml.addLinks(rawText, expandImg).value)
+    
+    if nl2br then RawHtml.nl2br(withLinks) else withLinks
+
+    def convertPlainUrlsToLinks(text: String): String = {
+      val urlRegex = """(https?://[^\s]+)""".r
+      
+      urlRegex.replaceAllIn(text, m => s"""<a href="${m.group(1)}" target="_blank">${m.group(1)}</a>""")
+    }
 
     def nl2brUnsafe(text: String): Frag =
       raw:
